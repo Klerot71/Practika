@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background-color: #f4f4f9; height: 100vh; margin: 0; }
+        
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 300px; z-index: 10; }
+        
+        input { width: 100%; padding: 8px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #4a90e2; color: white; border: none; border-radius: 6px; cursor: pointer; }
+
+        /* Квадрат позиционируется абсолютно относительно центра */
+        #box { 
+            position: absolute; 
+            top: 250px; /* Отступ сверху */
+            left: 50%; 
+            transform: translateX(-50%); /* Ключевой момент для центрирования */
+            background-color: #add8e6; 
+            transition: width 0.2s, height 0.2s, background-color 0.3s; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h3>Случайный цвет</h3>
+    Ширина: <input type="number" id="width" value="100" oninput="update()">
+    Высота: <input type="number" id="height" value="100" oninput="update()">
+    <button onclick="changeColor()">Случайный цвет</button>
+</div>
+
+<div id="box" style="width: 100px; height: 100px;"></div>
+
+<script>
+    const box = document.getElementById('box');
+    function update() {
+        box.style.width = document.getElementById('width').value + 'px';
+        box.style.height = document.getElementById('height').value + 'px';
+    }
+    function changeColor() {
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        box.style.backgroundColor = randomColor;
+    }
+</script>
+
+</body>
+</html>
