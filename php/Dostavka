@@ -1,0 +1,84 @@
+<?php
+// --- 1. ЛОГИКА КЭШИРОВАНИЯ ГОРОДОВ ---
+$cacheFile = 'cities_cache.txt';
+$cities = ["Москва", "Санкт-Петербург", "Тула"]; // Запасной список
+
+if (file_exists($cacheFile) && date('Y-m-d', filemtime($cacheFile)) === date('Y-m-d')) {
+    $decoded = json_decode(file_get_contents($cacheFile), true);
+    if (is_array($decoded)) $cities = $decoded;
+} else {
+    $response = @file_get_contents('https://exercise.develop.maximaster.ru/service/city/');
+    if ($response) {
+        $decoded = json_decode($response, true);
+        if (is_array($decoded)) {
+            $cities = $decoded;
+            file_put_contents($cacheFile, $response);
+        }
+    }
+}
+
+// --- 2. ОБРАБОТКА POST-ЗАПРОСА (AJAX) ---
+if (($_GET['action'] ?? '') === 'calculate') {
+    header('Content-Type: application/json');
+    $city = trim($_POST['city'] ?? '');
+    $weight = trim($_POST['weight'] ?? '');
+
+    if ($city === '' || !ctype_digit($weight)) {
+        echo json_encode(['status' => 'error', 'message' => 'Выберите город и укажите вес числом.']);
+        exit;
+    }
+
+    $url = 'https://exercise.develop.maximaster.ru/service/delivery/?' . http_build_query(['city' => $city, 'weight' => (int)$weight]);
+    $apiResponse = @file_get_contents($url);
+    
+    echo $apiResponse ?: json_encode(['status' => 'error', 'message' => 'Ошибка сервера доставки.']);
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Расчет доставки</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .card { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 100%; max-width: 350px; text-align: center; }
+        select, input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #5a67d8; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Доставка</h2>
+    <form id="deliveryForm">
+        <select name="city" id="citySelect">
+            <?php foreach ($cities as $c): ?>
+                <option value="<?php echo htmlspecialchars($c); ?>"><?php echo htmlspecialchars($c); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <input type="text" name="weight" id="weightInput" placeholder="Вес (кг)" required>
+        <button type="submit">Рассчитать</button>
+    </form>
+    <div id="result"></div>
+</div>
+
+<script>
+    document.getElementById('deliveryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const res = document.getElementById('result');
+        res.innerHTML = "Расчет...";
+        
+        fetch('?action=calculate', { method: 'POST', body: new FormData(this) })
+            .then(r => r.json())
+            .then(data => {
+                res.style.color = data.status === 'error' ? '#e53e3e' : '#38a169';
+                res.innerHTML = data.message || `Стоимость: ${data.price} руб.`;
+            });
+    });
+</script>
+</body>
+</html>
