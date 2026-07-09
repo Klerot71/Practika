@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список товаров</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 40px; 
+            color: #333;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .filter-card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+        }
+
+        input { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            width: 120px; 
+        }
+
+        button { 
+            padding: 10px 20px; 
+            background-color: #4a90e2; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #357abd; }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        th { background-color: #f8f9fa; color: #555; text-transform: uppercase; font-size: 14px; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr:hover { background-color: #f1f7ff; }
+
+        .error { 
+            background: #fff0f0; 
+            color: #d9534f; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            margin-top: 20px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="filter-card">
+        <label>Цена от: <input type="number" id="priceMin" value="0"></label>
+        <label>до: <input type="number" id="priceMax" value="0"></label>
+        <button onclick="renderTable()">Применить фильтр</button>
+    </div>
+
+    <div id="tableContainer"></div>
+    <div id="message" class="error" style="display: none;"></div>
+</div>
+
+<script>
+    const products = [
+        {"price":8805,"quantity":3,"name":"Светильник"},
+        {"price":17171,"quantity":6,"name":"Чайник электрический"},
+        {"price":8805,"quantity":3,"name":"Монитор 22″"},
+        {"price":11887,"quantity":4,"name":"Системный блок"},
+        {"price":15409,"quantity":6,"name":"Дверь межкомнатная"},
+        {"price":13648,"quantity":5,"name":"Лазерный принтер"},
+        {"price":14529,"quantity":5,"name":"Стол компьютерный"},
+        {"price":10126,"quantity":4,"name":"Телевизор ЖК"},
+        {"price":13648,"quantity":5,"name":"Бумага туалетная"},
+        {"price":10126,"quantity":4,"name":"Стул офисный"},
+        {"price":12768,"quantity":5,"name":"Маркеры офисные"},
+        {"price":15409,"quantity":6,"name":"Канцелярский набор"},
+        {"price":16290,"quantity":6,"name":"Вода бутилированная"}
+    ];
+
+    function renderTable() {
+        const min = parseInt(document.getElementById('priceMin').value) || 0;
+        const max = parseInt(document.getElementById('priceMax').value) || 0;
+        const container = document.getElementById('tableContainer');
+        const msg = document.getElementById('message');
+        
+        container.innerHTML = "";
+        msg.style.display = "none";
+
+        let filtered = products.filter(p => (min === 0 && max === 0) || (p.price >= min && p.price <= max));
+
+        if (filtered.length === 0) {
+            msg.innerText = "Нет данных, попадающих под условие фильтра";
+            msg.style.display = "block";
+            return;
+        }
+
+        let html = `<table><thead><tr><th>ID</th><th>Название</th><th>Количество</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>`;
+        filtered.forEach((p, i) => {
+            html += `<tr>
+                <td>${i + 1}</td>
+                <td>${p.name}</td>
+                <td>${p.quantity}</td>
+                <td>${p.price.toLocaleString()}</td>
+                <td>${(p.price * p.quantity).toLocaleString()}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
+
+    renderTable();
+</script>
+</body>
+</html>
