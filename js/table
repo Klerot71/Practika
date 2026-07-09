@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Моя таблица</title>
+    <style>
+        /* Центрируем всё на странице */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .table-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        td {
+            border: 1px solid #e0e0e0;
+            width: 80px;
+            height: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        td:hover { background-color: #f9f9f9; }
+
+        input {
+            width: 80%;
+            border: none;
+            outline: none;
+            text-align: center;
+        }
+
+        .controls { display: flex; gap: 10px; justify-content: center; }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #357abd; }
+    </style>
+</head>
+<body>
+
+<div class="table-wrapper">
+    <div id="tableContainer"></div>
+    <div class="controls">
+        <button onclick="changeSize(0, 1)">+ Столбец</button>
+        <button onclick="changeSize(0, -1)">- Столбец</button>
+        <button onclick="changeSize(1, 1)">+ Строка</button>
+        <button onclick="changeSize(1, -1)">- Строка</button>
+    </div>
+</div>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('tableData')) || [["", ""], ["", ""]];
+
+    function renderTable() {
+        let container = document.getElementById('tableContainer');
+        let html = '<table>';
+        data.forEach((row, rowIndex) => {
+            html += '<tr>';
+            row.forEach((cell, colIndex) => {
+                html += `<td ondblclick="editCell(this, ${rowIndex}, ${colIndex})">${cell}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</table>';
+        container.innerHTML = html;
+        localStorage.setItem('tableData', JSON.stringify(data));
+    }
+
+    function editCell(td, r, c) {
+        let val = td.innerText;
+        td.innerHTML = `<input type="text" value="${val}" onblur="saveCell(this, ${r}, ${c})">`;
+        td.firstChild.focus();
+    }
+
+    function saveCell(input, r, c) {
+        data[r][c] = input.value;
+        renderTable();
+    }
+
+    function changeSize(type, delta) {
+        if (delta < 0) {
+            if ((type === 0 && data[0].length <= 1) || (type === 1 && data.length <= 1)) return;
+            if (!confirm("Вы уверены? Данные будут удалены.")) return;
+        }
+
+        if (type === 1) { 
+            delta > 0 ? data.push(new Array(data[0].length).fill("")) : data.pop();
+        } else {
+            data.forEach(row => delta > 0 ? row.push("") : row.pop());
+        }
+        renderTable();
+    }
+
+    renderTable();
+</script>
+</body>
+</html>
