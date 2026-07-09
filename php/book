@@ -1,0 +1,71 @@
+<?php
+$file = 'guestbook.csv';
+
+// 1. Обработка отправки формы
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty(trim($_POST['message']))) {
+    $name = !empty(trim($_POST['name'])) ? htmlspecialchars(trim($_POST['name'])) : 'Анонимно';
+    $message = htmlspecialchars(trim($_POST['message']));
+    $date = date('d.m.Y H:i');
+    $entry = "$date|$name|$message\n";
+    file_put_contents($file, $entry, FILE_APPEND);
+    header("Location: " . $_SERVER['PHP_SELF']); // Избегаем повторной отправки при обновлении
+    exit;
+}
+
+// 2. Чтение сообщений
+$messages = [];
+if (file_exists($file)) {
+    $lines = array_reverse(file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+    foreach ($lines as $line) {
+        $messages[] = explode('|', $line);
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Гостевая книга</title>
+    <style>
+        :root { --primary: #667eea; --secondary: #764ba2; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px; margin: 0; }
+        
+        .container { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 500px; backdrop-filter: blur(10px); }
+        
+        h1 { text-align: center; color: #333; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        button:hover { background: var(--secondary); }
+        
+        .message-card { background: #f8f9fe; padding: 15px; border-radius: 12px; margin-top: 15px; border-left: 5px solid var(--primary); }
+        .message-card strong { color: var(--secondary); }
+        .message-card small { display: block; color: #888; font-size: 0.8rem; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Гостевая книга</h1>
+
+    <form method="POST">
+        <div class="form-group"><input type="text" name="name" placeholder="Ваше имя"></div>
+        <div class="form-group"><textarea name="message" placeholder="Ваше сообщение" required></textarea></div>
+        <button type="submit">Оставить сообщение</button>
+    </form>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+    <?php foreach ($messages as $msg): ?>
+        <div class="message-card">
+            <small><?php echo $msg[0]; ?></small>
+            <strong><?php echo $msg[1]; ?></strong>
+            <p><?php echo $msg[2]; ?></p>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+</body>
+</html>
